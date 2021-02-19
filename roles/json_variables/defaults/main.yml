@@ -1,0 +1,7 @@
+---
+set: false
+no_log: true
+TOWER_USER: "{{ lookup('env', 'TOWER_HOST') }}"
+TOWER_USER: "{{ lookup('env', 'TOWER_USER') }}"
+TOWER_PASSWORD: "{{ lookup('env', 'TOWER_PASSWORD') }}"
+

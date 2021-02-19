@@ -1,0 +1,101 @@
+- when: set 
+  block:
+   - copy: 
+      dest: /tmp/v.yml
+      content: |
+            ---
+            new_vars:
+
+   - lineinfile:
+      path: /tmp/v.yml
+      state: present
+      line: "  existing_{{ item.key }}: {{ item.value }}"
+     with_dict:
+      -  "{{ json_variables }}"
+   - include_vars:
+         file: /tmp/v.yml 
+   - uri:
+      url: https://localhost/api/v2/groups/?inventory=34&name={{ inventory_hostname }}
+      method: GET
+      validate_certs: no
+      user: {{ TOWER_USER}}
+      password: {{ TOWER_PASSWORD}}
+      return_content: yes
+     register: all_groups
+
+   - set_fact:
+         vv: "{{ all_groups['content']|from_json}}"
+   - set_fact:
+         group_id: "{{ vv['results'][0]['id']}}"
+
+   - uri:
+      url: https://localhost/api/v2/groups/{{ group_id }}/variable_data/
+      method: GET
+      validate_certs: no
+      user: admin
+      password: password
+      return_content: yes
+     register: old_vars
+
+   - set_fact:
+         all_vars: "{{old_vars.content|from_json|combine (new_vars)}}"
+      
+   - uri:
+      url: https://localhost/api/v2/groups/{{ group_id }}/variable_data/
+      method: PUT
+      validate_certs: no
+      user: admin
+      password: password
+      return_content: yes
+      body: "{{ all_vars | to_json }}"
+      body_format: json
+     register: current_vars
+   - set_fact:
+         existing_vars: "{{current_vars.content|from_json}}"
+      
+
+   - set_fact:
+        "{{ item.key }}": "{{item.value}}"
+     with_dict:
+         "{{ existing_vars }}" 
+
+
+
+- when: not set 
+  block:
+ 
+   - uri:
+      url: https://localhost/api/v2/groups/?inventory=34&name={{ inventory_hostname }}
+      method: GET
+      validate_certs: no
+      user: admin
+      password: password
+      return_content: yes
+     register: all_groups
+
+   - set_fact:
+         vv: "{{ all_groups['content']|from_json}}"
+   - set_fact:
+         group_id: "{{ vv['results'][0]['id']}}"
+
+   - uri:
+      url: https://localhost/api/v2/groups/{{ group_id }}/variable_data/
+      method: GET
+      validate_certs: no
+      user: admin
+      password: password
+      return_content: yes
+     register: old_vars
+
+   - set_fact:
+         existing_vars: "{{old_vars.content|from_json}}"
+      
+
+   - set_fact:
+        "{{ item.key }}": "{{item.value}}"
+     with_dict:
+         "{{ existing_vars }}" 
+ 
+
+
+    

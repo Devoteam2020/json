@@ -1,0 +1,54 @@
+- debug: msg="{{ item.key }}"
+   with_dict: "{{ json_variables }}"
+# - copy:
+#     dest: /tmp/v.yml
+#     content: |
+#           ---
+#           new_vars:
+
+# - lineinfile:
+#     path: /tmp/v.yml
+#     state: present
+#     line: "  {{ item.key }}: {{ item.value }}"
+#   with_dict:
+#     -  "{{ passed_vars }}"
+# - include_vars:
+#       file: /tmp/v.yml 
+# - uri:
+#     url: https://localhost/api/v2/groups/?inventory=34&name={{ inventory_hostname }}
+#     method: GET
+#     validate_certs: no
+#     user: admin
+#     password: password
+#     return_content: yes
+#   register: all_groups
+
+# - set_fact:
+#       vv: "{{ all_groups['content']|from_json}}"
+# - set_fact:
+#       group_id: "{{ vv['results'][0]['id']}}"
+
+# - uri:
+#     url: https://localhost/api/v2/groups/{{ group_id }}/variable_data/
+#     method: GET
+#     validate_certs: no
+#     user: admin
+#     password: password
+#     return_content: yes
+#   register: old_vars
+
+# - set_fact:
+#       all_vars: "{{old_vars.content|from_json|combine (new_vars)}}"
+    
+# - uri:
+#     url: https://localhost/api/v2/groups/{{ group_id }}/variable_data/
+#     method: PUT
+#     validate_certs: no
+#     user: admin
+#     password: password
+#     return_content: yes
+#     body: "{{ all_vars | to_json }}"
+#     body_format: json
+#   register: current_vars
+
+# - debug: var=current_vars.content
